@@ -20,11 +20,7 @@ let blankGrid = require("./getPreDeterminedGrid").preDeterminedBlankGrid;
 // First, place the first word on the bottom-left
 // Find the first white cell on the last row, as far bottom/left as possible
 // we receive an object that has the properties of where to start the word on the left, end on the right, and what row
-let firstEntry = FEmethods.insertFirstHorizontalEntry(
-    blankGrid,
-    blankGrid.length - 1,
-    0
-);
+let firstEntry = FEmethods.insertFirstHorizontalEntry(blankGrid, blankGrid.length - 1, 0);
 
 // the returned grid of the below function gives us a random valid word on the bottom left of the grid
 let grid = FEmethods.insertFirstHorizontalWord(blankGrid, firstEntry);
@@ -181,9 +177,15 @@ function createValidSectionRecursive(grid, entry) {
 
     // if the grid is valid, return the new grid
     // if the grid is not valid, return the old grid we put in, and do another "dice roll"
+    // helperMethods.printGrid(newGrid)
     let horizontalAnalysis = validityMethods.isGridValidHorizontally(newGrid);
-    if (horizontalAnalysis.validity === true) {
+    let horizontalWordPartialAnalysis = validityMethods.isGridPartialWordValidHorizontally(newGrid, 4)
+    let verticalAnalysis = validityMethods.isGridValidVertically(newGrid)
+    
+    if (horizontalAnalysis.validity === true && verticalAnalysis.validity === true && horizontalWordPartialAnalysis.validity === true) {
         newGrid.horizontalWords = horizontalAnalysis;
+        newGrid.verticalWords = verticalAnalysis
+        newGrid.horizontalWordPartial = horizontalWordPartialAnalysis
         return newGrid;
     }
     return grid;
