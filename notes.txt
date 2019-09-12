@@ -1,0 +1,19 @@
+Brainstorming
+
+I will need a validity check going vertical too
+- I'll have a check going vertical and horizontal at each "validity check"
+
+On top of a validity check, I will do a "partial word check"
+- "partial word check" will function similarly to validity, in that we have a horizontal and vertical "partial word check" (word length AND location-specific)
+- The main idea is to check all partial words, after a section has been created, and make sure we aren't "stuck"
+---- The concept of "stuck" would be having a partial word of "bvt" which has no valid words associated with it, meaning, this crossword will never be valid
+- check to see if all partial words can be a part of an ACTUAL word
+---- Maybe have a counter where the most minimum number of actual words that can be made is maybe 2+, or maybe 5+
+
+So at each validity check I'll have a "partial word check"
+
+Now that the bottom-left corner is filled
+- I will send out a pointer that searches for letters that have "1" next to them
+- If we spot a letter with a "1" next to it, we will create a horizontal word, and then vertical words coming out of it
+- I may move all of my functions that I've done so far as my "beinning methods"
+---- The methods that, 1. search for letters with "1" next to them, 2. create a horizontal word at that location and 3. create vertical words from that horizontal word, will be the "meat" of this program

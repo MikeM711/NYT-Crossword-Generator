@@ -1,0 +1,11 @@
+{
+  "name": "nyt-crossword-generator",
+  "version": "1.0.0",
+  "description": "A crossword generator that builds crosswords similar to The New York Times",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Michael McCabe",
+  "license": "ISC"
+}
