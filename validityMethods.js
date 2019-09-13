@@ -3,13 +3,20 @@ let _ = require("lodash");
 let wordHash = require("./dictionary/dictionaryHash").dictionary_hash;
 let wordDictionary = require("./dictionary/dictionary").dictionary_english;
 
-function HorizontalPartialWordValidity(validity, numMinWords, minWordsFromPartial) {
+function RowColLocation(row, col) {
+    this.row = row;
+    this.col = col;
+}
+
+function HorizontalPartialWordValidity(validity, numMinWords, minWordsFromPartial, row, col) {
     this.validity = validity;
     // the below property indicates the the most minimum combination of words that could fit in a partial word we have anlayzed
     // GOOD: The idea is to never have the below property = 0
     // BETTER: I would say a more flexible "word section" gives us around ~5 words or so at minimum?
     this.numMinWordCombinations = numMinWords;
     this.minWordsArr = minWordsFromPartial;
+    this.minWordsRowLocation = row;
+    this.minWordsColLocation = col;
 }
 
 // The below function analyzes the WHOLE grid horizontally for partial words only
@@ -26,7 +33,7 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
     // the below variable the most mininum word combinations for all "partial word" combinations
     // this serves as our "validity"
     // if minWordCombinations = 0, validity is immediately false no matter what
-    let minWordCombinations = Number.MAX_VALUE; 
+    let minWordCombinations = Number.MAX_VALUE;
 
     // the below variable holds an array of the valid words that could be made from the partial word with the most mininum combinations
     let minWordsFromPartial;
@@ -43,8 +50,7 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
                 // If we hit a "null", that can indicate 2 things:
                 // 1. This is the "block" boundary of the end of a word
                 // 2. This is "dead space" - where the last element was null or a grid boundary
-                colPointer++;
-
+                
                 // do we have characters that are not 1 in our hash?
                 // we only need to compute for this if the hash is not empty
                 let charFound = false;
@@ -91,6 +97,8 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
                     // if we hit a minimum, let's see the words we can make from this minimum
                     if (numWordsFromPartial < minWordCombinations) {
                         minWordsFromPartial = arrWordsFromPartial;
+                        // the location of the beginning of a partial word with the most minimum word combinations
+                        rowColLoctation = new RowColLocation(rowPointer, colPointer - hashSize);
                     }
 
                     // check and update the minWordCombinations variable if we hit a "more minimum" number of combinations
@@ -103,6 +111,7 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
                 // else:
                 // congratulations, there are no partial words to analyze
                 // analyze the next partial word in this row
+                hashSize = 0;
                 hash = {};
             }
             else {
@@ -110,8 +119,10 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
                 // it is neither 1, null or undefined
                 hash[hashSize] = grid[rowPointer][colPointer];
                 hashSize++;
-                colPointer++;
             }
+            // iterate up the colPointer of the current row
+            // go through the while loop again
+            colPointer++;
         }
 
         // execution is here if we have fully analyzed an entire row
@@ -136,7 +147,6 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
             let numWordsFromPartial = 0;
             let arrWordsFromPartial = [];
             for (let i = 0; i < wordDictionary.length; i++) {
-
                 // only analyze a word from the dictionary IF it is the size as our FULL "partial word"
                 if (wordDictionary[i].length === hashSize) {
                     // a word from the dictionary is the same size as the word we have hashed
@@ -159,6 +169,9 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
             // if we hit a minimum, let's see the words we can make from this minimum
             if (numWordsFromPartial < minWordCombinations) {
                 minWordsFromPartial = arrWordsFromPartial;
+                // the location of the beginning of a partial word with the most minimum word combinations
+                // - 1 is NOT used because we iterated the full row (we did not iterate up the colPointer)
+                rowColLoctation = new RowColLocation(rowPointer, colPointer - hashSize);
             }
 
             // check and update the minWordCombinations variable if needed
@@ -184,7 +197,7 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
         validity = false;
     }
     // return horizontal validity result
-    return new HorizontalPartialWordValidity(validity, minWordCombinations, minWordsFromPartial);
+    return new HorizontalPartialWordValidity(validity, minWordCombinations, minWordsFromPartial, rowColLoctation.row,rowColLoctation.col);
 };
 
 

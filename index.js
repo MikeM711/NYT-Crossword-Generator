@@ -10,16 +10,25 @@ let blankGrid = require("./getPreDeterminedGrid").preDeterminedBlankGrid;
 
 // let blankGrid = [
 //     [null, 1, 1, 1, 1],
-//     [null, null, 1, 1, null],
-//     [null, null, 1, 1, 1],
-//     [1, 1, 1, 1, 1],
-//     [1, 1, 1, 1, 1],
-//     [1, 1 , 1, 1, null],
+//     ['a', null, 'o', 'f', null],
+//     ['a', 'r', null, 1, 1],
+//     [1, 'a', 'd', 1, 1],
+//     ['a', 1, 'r', 1, 1],
+//     [null, 'r' , 'y', 1, null],
 // ]
+
+// console.log(wordHash['rad'])
+// helperMethods.printGrid(blankGrid)
+// let testGridHorizPartial = validityMethods.isGridPartialWordValidHorizontally(blankGrid)
+// let testGridVert = validityMethods.isGridValidVertically(blankGrid)
+// let testGridHorizontal = validityMethods.isGridValidHorizontally(blankGrid)
+// console.log(testGridHorizPartial)
+
 
 // First, place the first word on the bottom-left
 // Find the first white cell on the last row, as far bottom/left as possible
 // we receive an object that has the properties of where to start the word on the left, end on the right, and what row
+// Future: May want to "dice roll" the following line as well, rather than be stuck with one word
 let firstEntry = FEmethods.insertFirstHorizontalEntry(blankGrid, blankGrid.length - 1, 0);
 
 // the returned grid of the below function gives us a random valid word on the bottom left of the grid
