@@ -1,4 +1,4 @@
-let helperMethods = require("./helperMethods");
+const { randomWordGenerator } = require("./helperMethods");
 
 function ValidRowStartEnd(start, end, row) {
     this.startLeft = start;
@@ -12,8 +12,8 @@ We make use of the ValidRowStartEnd constructor
 
 If the row/col combination provided starts as a "null" we will iterate until we find a "white cell", label that as start, and keep going until we have a "block", label that as end
 */
-insertFirstHorizontalEntry = function (grid, row, col) {
-    let bottomRowPointer = col;
+exports.insertFirstHorizontalEntry = function (grid, row) {
+    let bottomRowPointer = 0;
     let pointerValue = grid[row][bottomRowPointer];
 
     // iterate the pointer to the right until we find a non-null (valid) white cell
@@ -37,14 +37,14 @@ insertFirstHorizontalEntry = function (grid, row, col) {
     return new ValidRowStartEnd(start, end, row);
 };
 
-function insertFirstHorizontalWord(grid, horizontalEntry) {
+exports.insertFirstHorizontalWord = function(grid, horizontalEntry, dictionary) {
     // the length of the white horizontal entries we want to fill with a word
     let entryLength = horizontalEntry.endRight - horizontalEntry.startLeft + 1;
 
     // search for a word that has the same length as the entry length
     let randomWord = null;
     while (randomWord === null) {
-        randomWord = helperMethods.randomWordGenerator();
+        randomWord = randomWordGenerator(dictionary);
         if (randomWord.length === entryLength) {
             console.log("Random word: ", randomWord);
             break;
@@ -64,8 +64,3 @@ function insertFirstHorizontalWord(grid, horizontalEntry) {
     // return the grid with that one word entry
     return grid;
 }
-
-module.exports = {
-    insertFirstHorizontalEntry: insertFirstHorizontalEntry,
-    insertFirstHorizontalWord: insertFirstHorizontalWord
-};

@@ -1,57 +1,97 @@
-let _ = require("lodash");
+const _ = require("lodash");
 
-let helperMethods = require("./helperMethods");
-let FEmethods = require("./firstEntryMethods");
-let validityMethods = require("./validityMethods");
-let wordHash = require("./dictionary/dictionaryHash").dictionary_hash;
-let blankGrid = require("./getPreDeterminedGrid").preDeterminedBlankGrid;
-
-// Test grid below
-
-// let blankGrid = [
-//     [null, 1, 1, 1, 1],
-//     ['a', null, 'o', 'f', null],
-//     ['a', 'r', null, 1, 1],
-//     [1, 'a', 'd', 1, 1],
-//     ['a', 1, 'r', 1, 1],
-//     [null, 'r' , 'y', 1, null],
-// ]
-
-// console.log(wordHash['rad'])
-// helperMethods.printGrid(blankGrid)
-// let testGridHorizPartial = validityMethods.isGridPartialWordValidHorizontally(blankGrid)
-// let testGridVert = validityMethods.isGridValidVertically(blankGrid)
-// let testGridHorizontal = validityMethods.isGridValidHorizontally(blankGrid)
-// console.log(testGridHorizPartial)
-
+const { randomWordGenerator, randomNumberGenerator, printGrid } = require("./helperMethods");
+const { insertFirstHorizontalEntry, insertFirstHorizontalWord } = require("./firstEntryMethods");
+const { insertHorizontalWordFromPartial } = require("./laterEntryMethods")
+const { isGridValidHorizontally, 
+    isGridValidVertically, 
+    isGridPartialWordValidHorizontally, 
+    isGridComplete } = require("./validityMethods");
+const { wordHash } = require("./dictionary/dictionaryHash");
+const { dictionary} = require("./dictionary/dictionary")
+const { blankGrid } = require("./getPreDeterminedGrid");
 
 // First, place the first word on the bottom-left
 // Find the first white cell on the last row, as far bottom/left as possible
 // we receive an object that has the properties of where to start the word on the left, end on the right, and what row
 // Future: May want to "dice roll" the following line as well, rather than be stuck with one word
-let firstEntry = FEmethods.insertFirstHorizontalEntry(blankGrid, blankGrid.length - 1, 0);
+const firstEntry = insertFirstHorizontalEntry(blankGrid, blankGrid.length - 1);
 
 // the returned grid of the below function gives us a random valid word on the bottom left of the grid
-let grid = FEmethods.insertFirstHorizontalWord(blankGrid, firstEntry);
+let grid = insertFirstHorizontalWord(blankGrid, firstEntry, dictionary);
 
 // insert vertical words from the horizontal word we have just laid down
 // This is where we would loop the program for "section re-do's"
-let newGridCreated = false;
-while (newGridCreated === false) {
+let gridComplete = false;
+while (gridComplete === false) {
     // below method will always return a valid grid - whether it is updated or the same
-    let newGrid = createValidSectionRecursive(grid, firstEntry);
+    let newGrid = createInitialValidSection(grid, firstEntry, dictionary);
     if (_.isEqual(grid, newGrid) === false) {
         // this grid has changed, meaning we have made valid progress
         grid = newGrid;
-        newGridCreated = true;
+        gridComplete = true;
+        printGrid(grid);
+        // we have just kickstarted our grid board
+        // below is the "meat" of the program, responsible for filling the rest of the board
+        grid = createValidSectionBacktracking(grid)
+        // if execution is here, the program is over
     }
     // else, continue the loop
 }
 
 console.log("we have created the new grid");
-helperMethods.printGrid(grid);
+printGrid(grid);
 // when I print out the grid, I hope to have "horizontal words" as a proper for me to look at
 console.log("end");
+
+function createValidSectionBacktracking(grid) {
+    let gridComplete = false
+    while (gridComplete === false) {
+        // we create a deep clone of the incoming grid, which allows us to backtrack if our newGrid is invalid
+        let dummyGrid = _.cloneDeep(grid);
+
+        console.log(dummyGrid)
+
+        // insert a horizontal word on a "horizontal partial word" entry that has the least amount of possible words
+        // FUTURE: I will need to test to make sure that the inserted word IS VALID WITH PARTIAL WORDS
+        // Step #1: RNG a valid word from the list of "least amount of possible words" horizontally- minWordsArr property
+        let leastNumberWordsList = grid.horizontalWordPartial.minWordsArr
+        let rngHorizontalWordIdx = randomNumberGenerator(leastNumberWordsList.length)
+        let horizontalWordForPartial = leastNumberWordsList[rngHorizontalWordIdx]
+
+        dummyGrid = insertHorizontalWordFromPartial(grid, horizontalWordForPartial)
+        console.log(dummyGrid)
+        printGrid(dummyGrid)
+
+        // Next we will insert vertical words as follows:
+        // // begin to insert vertical words
+        // // we will insert words from entry.startLeft to entry.endRight for entry.row
+        // for (let i = entry.startLeft; i <= entry.endRight; i++) {
+        //     newGrid = insertVerticalEntry(newGrid, entry.row, i);
+        // }
+        // newGrid.horizontalWords; // not really needed
+
+        // // if the grid is valid, return the new grid
+        // // if the grid is not valid, return the old grid we put in, and do another "dice roll"
+        // // printGrid(newGrid)
+        // let horizontalAnalysis = isGridValidHorizontally(newGrid);
+        // let horizontalWordPartialAnalysis = isGridPartialWordValidHorizontally(newGrid, 4)
+        // let verticalAnalysis = isGridValidVertically(newGrid)
+
+        // if (horizontalAnalysis.validity === true && verticalAnalysis.validity === true && horizontalWordPartialAnalysis.validity === true) {
+        //     newGrid.horizontalWords = horizontalAnalysis;
+        //     newGrid.verticalWords = verticalAnalysis
+        //     newGrid.horizontalWordPartial = horizontalWordPartialAnalysis
+        //     return newGrid;
+        // }
+        // return grid;
+
+        isGridComplete(grid)
+        break // temorary break
+    }
+    return grid;
+}
+
 
 /* 
 The following function takes some cell location in the grid
@@ -62,7 +102,7 @@ From that cell location, it travels as far up and as far down as possible to fin
 Extra Notes:
 This function also has the ability to NOT OVERWRITE OTHER WORDS
 */
-function insertVerticalEntry(grid, row, col) {
+function insertVerticalEntry(grid, row, col, dictionary) {
     // where do we want to begin the word coming down?
 
     // iterate up the column until we hit either a null or undefined for a start
@@ -110,7 +150,7 @@ function insertVerticalEntry(grid, row, col) {
     while (randomWord === null) {
         // first, find a word of the same length as wordHeight
         while (randomWord === null) {
-            randomWord = helperMethods.randomWordGenerator();
+            randomWord = randomWordGenerator(dictionary);
             if (randomWord.length == wordHeight) {
                 break;
             } else {
@@ -168,29 +208,29 @@ The following function inserts vertical words from one arbitrary white cell to a
 
 After we insert all vertical words
 */
-function createValidSectionRecursive(grid, entry) {
+function createInitialValidSection(grid, entry, dictionary) {
     // we create a deep clone of the incoming grid, which allows us to backtrack if our newGrid is invalid
     // in the above case, we use grid as our return to redo this particular section, instead of the invalid newGrid
     // entry is an object with properties of: startLeft, endRight, row
 
     let newGrid = _.cloneDeep(grid);
 
-    // helperMethods.printGrid(grid)
+    // printGrid(grid)
 
     // begin to insert vertical words
     // we will insert words from entry.startLeft to entry.endRight for entry.row
     for (let i = entry.startLeft; i <= entry.endRight; i++) {
-        newGrid = insertVerticalEntry(newGrid, entry.row, i);
+        newGrid = insertVerticalEntry(newGrid, entry.row, i, dictionary);
     }
     newGrid.horizontalWords; // not really needed
 
     // if the grid is valid, return the new grid
     // if the grid is not valid, return the old grid we put in, and do another "dice roll"
-    // helperMethods.printGrid(newGrid)
-    let horizontalAnalysis = validityMethods.isGridValidHorizontally(newGrid);
-    let horizontalWordPartialAnalysis = validityMethods.isGridPartialWordValidHorizontally(newGrid, 4)
-    let verticalAnalysis = validityMethods.isGridValidVertically(newGrid)
-    
+    // printGrid(newGrid)
+    let horizontalAnalysis = isGridValidHorizontally(newGrid);
+    let horizontalWordPartialAnalysis = isGridPartialWordValidHorizontally(newGrid, 4)
+    let verticalAnalysis = isGridValidVertically(newGrid)
+
     if (horizontalAnalysis.validity === true && verticalAnalysis.validity === true && horizontalWordPartialAnalysis.validity === true) {
         newGrid.horizontalWords = horizontalAnalysis;
         newGrid.verticalWords = verticalAnalysis

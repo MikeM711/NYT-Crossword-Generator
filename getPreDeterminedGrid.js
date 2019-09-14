@@ -1,5 +1,5 @@
 // var preDeterminedGrid = require('./data/nyt_crosswords/2014/06/02.json')
-var preDeterminedGrid = require("./data/nyt_crosswords/2012/06/05.json");
+const preDeterminedGrid = require("./data/nyt_crosswords/2012/06/05.json");
 
 // TO-DO: When near completion of this project - I will have an RNG that will gather a random grid for each crossword instance
 // For now, we will deal with a static file
@@ -13,7 +13,7 @@ var preDeterminedGrid = require("./data/nyt_crosswords/2012/06/05.json");
 
 // printPreDeterminedGrid(preDeterminedGrid)
 
-let preDeterminedBlankGrid = createBlankGrid(preDeterminedGrid);
+exports.blankGrid = createBlankGrid(preDeterminedGrid);
 
 // printGrid(preDeterminedBlankGrid)
 
@@ -60,5 +60,3 @@ function createBlankGrid(grid) {
     }
     return blankGrid;
 }
-
-module.exports = { preDeterminedBlankGrid: preDeterminedBlankGrid };

@@ -1,7 +1,7 @@
 let _ = require("lodash");
 
-let wordHash = require("./dictionary/dictionaryHash").dictionary_hash;
-let wordDictionary = require("./dictionary/dictionary").dictionary_english;
+let { wordHash } = require("./dictionary/dictionaryHash");
+let { dictionary } = require("./dictionary/dictionary");
 
 function RowColLocation(row, col) {
     this.row = row;
@@ -23,7 +23,7 @@ function HorizontalPartialWordValidity(validity, numMinWords, minWordsFromPartia
 // Full words are skipped
 // We traverse from left to right at the top row, going down
 // Therefore, traversal ends when it reaches the bottom boundary
-isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinations = 1) {
+exports.isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinations = 1) {
     let gridHeight = grid.length;
     let gridWidth = grid[0].length;
     let colPointer = 0;
@@ -73,20 +73,20 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
                     // if execution is here, we have analyzed a "partial" word that we need to check
                     let numWordsFromPartial = 0;
                     let arrWordsFromPartial = [];
-                    for (let i = 0; i < wordDictionary.length; i++) {
+                    for (let i = 0; i < dictionary.length; i++) {
                         // only analyze a word from the dictionary IF it is the size of our FULL "partial word"
-                        if (wordDictionary[i].length === hashSize) {
+                        if (dictionary[i].length === hashSize) {
                             // a word from the dictionary is the same size as the word we have hashed
-                            for (let j = 0; j < wordDictionary[i].length; j++) {
+                            for (let j = 0; j < dictionary[i].length; j++) {
                                 // if the hashed value is NOT 1 at a particular location, we must analyze it against the word AT THAT PARTICULAR LOCATION from the word dictionary
 
                                 // if the hashed value (char) is not 1, and the value (char) is NOT at the same location as the word from the dictionary - discard this word as a possible word made from this "partial word"
-                                if (hash[j] !== 1 && hash[j] !== wordDictionary[i][j]) {
+                                if (hash[j] !== 1 && hash[j] !== dictionary[i][j]) {
                                     break;
                                 }
-                                if (j === wordDictionary[i].length - 1) {
+                                if (j === dictionary[i].length - 1) {
                                     // if we have exhausted the for loop, this word is a possibile answer for our "partial word"
-                                    arrWordsFromPartial.push(wordDictionary[i]);
+                                    arrWordsFromPartial.push(dictionary[i]);
                                     numWordsFromPartial++;
                                 }
                             }
@@ -146,18 +146,18 @@ isGridPartialWordValidHorizontally = function (grid, smallestAllowedWordCombinat
 
             let numWordsFromPartial = 0;
             let arrWordsFromPartial = [];
-            for (let i = 0; i < wordDictionary.length; i++) {
+            for (let i = 0; i < dictionary.length; i++) {
                 // only analyze a word from the dictionary IF it is the size as our FULL "partial word"
-                if (wordDictionary[i].length === hashSize) {
+                if (dictionary[i].length === hashSize) {
                     // a word from the dictionary is the same size as the word we have hashed
-                    for (let j = 0; j < wordDictionary[i].length; j++) {
+                    for (let j = 0; j < dictionary[i].length; j++) {
                         // if the hashed value is a NOT 1 at a particular location, we must analyze it against the word AT THAT PARTICULAR LOCATION from the word dictionary
-                        if (hash[j] !== 1 && hash[j] !== wordDictionary[i][j]) {
+                        if (hash[j] !== 1 && hash[j] !== dictionary[i][j]) {
                             break;
                         }
-                        if (j === wordDictionary[i].length - 1) {
+                        if (j === dictionary[i].length - 1) {
                             // if we have exhausted the for loop, this word is a possibile answer for our "partial word"
-                            arrWordsFromPartial.push(wordDictionary[i]);
+                            arrWordsFromPartial.push(dictionary[i]);
                             numWordsFromPartial++;
                         }
                     }
@@ -209,7 +209,7 @@ function HorizontalValidity(validity, words) {
 // The below function analyzes the WHOLE grid horizontally 
 // We traverse from left to right at the top row, going down
 // Therefore, it ends when it reaches the bottom boundary
-isGridValidHorizontally = function (grid) {
+exports.isGridValidHorizontally = function (grid) {
     let gridHeight = grid.length;
     let gridWidth = grid[0].length;
     let colPointer = 0;
@@ -299,7 +299,7 @@ function VerticalValidity(validity, words) {
 // The below function analyzes the WHOLE grid vertically 
 // We traverse from top to bottom at the most left column, checking each column to the right
 // Therefore, it ends when it reaches the far right boundary
-isGridValidVertically = function (grid) {
+exports.isGridValidVertically = function (grid) {
     let gridHeight = grid.length;
     let gridWidth = grid[0].length;
     let colPointer = 0;
@@ -379,8 +379,6 @@ isGridValidVertically = function (grid) {
     return new VerticalValidity(validity, verticalWords);
 };
 
-module.exports = {
-    isGridValidHorizontally: isGridValidHorizontally,
-    isGridValidVertically: isGridValidVertically,
-    isGridPartialWordValidHorizontally: isGridPartialWordValidHorizontally
-};
+exports.isGridComplete = function(grid) {
+    return _.includes(grid.grid, 1) === false ? true: false
+}
