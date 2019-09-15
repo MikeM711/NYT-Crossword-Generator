@@ -17,3 +17,5 @@ Now that the bottom-left corner is filled
 - If we spot a letter with a "1" next to it, we will create a horizontal word, and then vertical words coming out of it
 - I may move all of my functions that I've done so far as my "beinning methods"
 ---- The methods that, 1. search for letters with "1" next to them, 2. create a horizontal word at that location and 3. create vertical words from that horizontal word, will be the "meat" of this program
+
+Thinking about implementing async/await to solve the problem of execution getting stuck 1/20-ish times

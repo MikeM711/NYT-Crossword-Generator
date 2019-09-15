@@ -46,7 +46,7 @@ exports.insertFirstHorizontalWord = function(grid, horizontalEntry, dictionary) 
     while (randomWord === null) {
         randomWord = randomWordGenerator(dictionary);
         if (randomWord.length === entryLength) {
-            console.log("Random word: ", randomWord);
+            // console.log("Random word: ", randomWord);
             break;
         } else {
             // the RNG word does not have the length we are looking for, keep searching

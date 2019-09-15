@@ -30,8 +30,8 @@ exports.isGridPartialWordValidHorizontally = function (grid, smallestAllowedWord
     let rowPointer = 0;
     let validity = true;
 
-    // the below variable the most mininum word combinations for all "partial word" combinations
-    // this serves as our "validity"
+    // the below variable indicates the most mininum number of acceptable word combinations for all "partial words" in our crossword
+    // this serves as our "validity" because we need all of our "word partials" to be able to create words
     // if minWordCombinations = 0, validity is immediately false no matter what
     let minWordCombinations = Number.MAX_VALUE;
 
@@ -379,6 +379,13 @@ exports.isGridValidVertically = function (grid) {
     return new VerticalValidity(validity, verticalWords);
 };
 
-exports.isGridComplete = function(grid) {
-    return _.includes(grid.grid, 1) === false ? true: false
+exports.isGridComplete = function (grid) {
+    let isComplete = true
+    for (let i = 0; i < grid.length - 1; i++) {
+        if (_.includes(grid[i], 1) === true) {
+            isComplete = false;
+            break
+        }
+    }
+    return isComplete
 }
