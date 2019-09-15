@@ -201,6 +201,199 @@ exports.isGridPartialWordValidHorizontally = function (grid, smallestAllowedWord
 };
 
 
+function VerticalPartialWordValidity(validity, numMinWords, minWordsFromPartial, row, col) {
+    this.validity = validity;
+    // the below property indicates the the most minimum combination of words that could fit in a partial word we have anlayzed
+    // GOOD: The idea is to never have the below property = 0
+    // BETTER: I would say a more flexible "word section" gives us around ~5 words or so at minimum?
+    this.numMinWordCombinations = numMinWords;
+    this.minWordsArr = minWordsFromPartial;
+    this.minWordsRowLocation = row;
+    this.minWordsColLocation = col;
+}
+
+// The below function analyzes the WHOLE grid vertically for partial words only
+// Full words are skipped
+// We traverse from top to bottom at the first column, traversing to the right-most column
+// Therefore, traversal ends when it reaches the right boundary
+exports.isGridPartialWordValidVertically = function(grid, smallestAllowedWordCombinations = 1) {
+    let gridHeight = grid.length;
+    let gridWidth = grid[0].length;
+    let colPointer = 0;
+    let rowPointer = 0;
+    let validity = true;
+
+    // the below variable indicates the most mininum number of acceptable word combinations for all "partial words" in our crossword
+    // this serves as our "validity" because we need all of our "word partials" to be able to create words
+    // if minWordCombinations = 0, validity is immediately false no matter what
+    let minWordCombinations = Number.MAX_VALUE;
+
+    // the below variable holds an array of the valid words that could be made from the partial word with the most mininum combinations
+    let minWordsFromPartial;
+
+    // if a user gives a smallestAllowedWordCombinations input, minWordCombinatons should ALWAYS be bigger than that 
+    // this input allows our crossword to be flexible with more RNG words
+    // The higher the input number, the more flexible the words are in the grid for creating more words
+    while (minWordCombinations > smallestAllowedWordCombinations && colPointer < gridWidth) {
+        // get all "partial words" on a row
+        let hash = {}; // this hash keeps track of our exact "partial word" characters + locations
+        let hashSize = 0;
+        while (rowPointer < gridHeight && minWordCombinations > smallestAllowedWordCombinations) {
+            if (grid[rowPointer][colPointer] == null) {
+                // If we hit a "null", that can indicate 2 things:
+                // 1. This is the "block" boundary of the end of a word
+                // 2. This is "dead space" - where the last element was null or a grid boundary
+                
+                // do we have characters that are not 1 in our hash?
+                // we only need to compute for this if the hash is not empty
+                let charFound = false;
+
+                // execution enters the following "if" providing that the hash has both a "1" and is not empty
+                // this is where full words (hashes with no 1's) will be filtered out
+                if (_.isEmpty(hash) !== true && _.includes(hash, 1) === true) {
+                    _.forEach(hash, function (value, key) {
+                        // if we have a value that is not 1 in our hash, that means we have at least 1 character
+                        if (value !== 1) {
+                            // Having at least 1 existing character makes this a "partial word" that we MUST analyze
+                            charFound = true;
+                        }
+                    });
+                }
+
+                // we always enter the below "if" as long as charFound === true
+                // the extra conditions simply help for readability
+                if (_.isEmpty(hash) !== true && _.includes(hash, 1) === true && charFound === true) {
+                    // if execution is here, we have analyzed a "partial" word that we need to check
+                    let numWordsFromPartial = 0;
+                    let arrWordsFromPartial = [];
+                    for (let i = 0; i < dictionary.length; i++) {
+                        // only analyze a word from the dictionary IF it is the size of our FULL "partial word"
+                        if (dictionary[i].length === hashSize) {
+                            // a word from the dictionary is the same size as the word we have hashed
+                            for (let j = 0; j < dictionary[i].length; j++) {
+                                // if the hashed value is NOT 1 at a particular location, we must analyze it against the word AT THAT PARTICULAR LOCATION from the word dictionary
+
+                                // if the hashed value (char) is not 1, and the value (char) is NOT at the same location as the word from the dictionary - discard this word as a possible word made from this "partial word"
+                                if (hash[j] !== 1 && hash[j] !== dictionary[i][j]) {
+                                    break;
+                                }
+                                if (j === dictionary[i].length - 1) {
+                                    // if we have exhausted the for loop, this word is a possibile answer for our "partial word"
+                                    arrWordsFromPartial.push(dictionary[i]);
+                                    numWordsFromPartial++;
+                                }
+                            }
+                        }
+                    }
+                    // we have right now analyzed the full dictionary
+
+                    // if we hit a minimum, let's see the words we can make from this minimum
+                    if (numWordsFromPartial < minWordCombinations) {
+                        minWordsFromPartial = arrWordsFromPartial;
+                        // the location of the beginning of a partial word with the most minimum word combinations
+                        rowColLoctation = new RowColLocation(rowPointer - hashSize, colPointer);
+                    }
+
+                    // check and update the minWordCombinations variable if we hit a "more minimum" number of combinations
+                    minWordCombinations = Math.min(minWordCombinations, numWordsFromPartial);
+
+                    // delete everything from the hash and prepare to examine in the next partial word
+                    hash = {};
+                    hashSize = 0;
+                }
+                // else:
+                // congratulations, there are no partial words to analyze
+                // analyze the next partial word in this row
+                hashSize = 0;
+                hash = {};
+            }
+            else {
+                // we are on a character of a word
+                // it is neither 1, null or undefined
+                hash[hashSize] = grid[rowPointer][colPointer];
+                hashSize++;
+            }
+            // iterate up the colPointer of the current row
+            // go through the while loop again
+            rowPointer++;
+        }
+
+        // execution is here if we have fully analyzed an entire row
+
+        // Case: we have a word that ends on the boundary of the grid: colPointer = gridWidth
+        // Test to see if we have a "partial word"
+
+        // do we have characters that are not 1 in our hash?
+        let charFound = false;
+
+        _.forEach(hash, function (value, key) {
+            // if we have a value that is not 1 in our hash, that means we have at least 1 character
+            if (value !== 1) {
+                // Having at least 1 existing character makes this a "partial word" that we MUST analyze
+                charFound = true;
+            }
+        });
+
+        if (_.isEmpty(hash) !== true && _.includes(hash, 1) === true && charFound === true) {
+            // check to see how many words we can form from this partial word
+
+            let numWordsFromPartial = 0;
+            let arrWordsFromPartial = [];
+            for (let i = 0; i < dictionary.length; i++) {
+                // only analyze a word from the dictionary IF it is the size as our FULL "partial word"
+                if (dictionary[i].length === hashSize) {
+                    // a word from the dictionary is the same size as the word we have hashed
+                    for (let j = 0; j < dictionary[i].length; j++) {
+                        // if the hashed value is a NOT 1 at a particular location, we must analyze it against the word AT THAT PARTICULAR LOCATION from the word dictionary
+                        if (hash[j] !== 1 && hash[j] !== dictionary[i][j]) {
+                            break;
+                        }
+                        if (j === dictionary[i].length - 1) {
+                            // if we have exhausted the for loop, this word is a possibile answer for our "partial word"
+                            arrWordsFromPartial.push(dictionary[i]);
+                            numWordsFromPartial++;
+                        }
+                    }
+                }
+            }
+
+            // we have right now analyzed the full dictionary
+
+            // if we hit a minimum, let's see the words we can make from this minimum
+            if (numWordsFromPartial < minWordCombinations) {
+                minWordsFromPartial = arrWordsFromPartial;
+                // the location of the beginning of a partial word with the most minimum word combinations
+                // - 1 is NOT used because we iterated the full row (we did not iterate up the colPointer)
+                rowColLoctation = new RowColLocation(rowPointer - hashSize, colPointer);
+            }
+
+            // check and update the minWordCombinations variable if needed
+            minWordCombinations = Math.min(minWordCombinations, numWordsFromPartial);
+        }
+        // if execution breaks out of the while loop with a "false" validity, break out of this loop as well
+        if (minWordCombinations < smallestAllowedWordCombinations) {
+            validity = false;
+            break;
+        }
+
+        // If execution is here and validity is true, that means our column we have analyzed (and columns before that) is valid
+        // set ourselves up for testing words in the next column
+        colPointer++; // moving to the next column
+        rowPointer = 0; // starting from the top row
+    }
+    // If execution is here we have either
+    // 1: exhausted the while loop: colPointer == gridWidth, meaning we found no validity discrepencies
+    // 2: validity became false
+
+    // make sure validity becomes false if we find a partial word with less combinations than we allow it (given as a function argument)
+    if (minWordCombinations < smallestAllowedWordCombinations) {
+        validity = false;
+    }
+    // return horizontal validity result
+    return new VerticalPartialWordValidity(validity, minWordCombinations, minWordsFromPartial, rowColLoctation.row,rowColLoctation.col);
+};
+
+
 function HorizontalValidity(validity, words) {
     this.validity = validity;
     this.horizontalWords = words; // used to observe results

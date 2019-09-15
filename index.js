@@ -1,11 +1,12 @@
 const _ = require("lodash");
 
 const { randomWordGenerator, randomNumberGenerator, printGrid } = require("./helperMethods");
-const { insertFirstHorizontalEntry, insertFirstHorizontalWord } = require("./firstEntryMethods");
+const { insertFirstHorizontalEntry, insertFirstHorizontalWord } = require("./firstEntrySectionMethods");
 const { insertHorizontalWordFromPartial } = require("./laterEntryMethods")
 const { isGridValidHorizontally, 
     isGridValidVertically, 
     isGridPartialWordValidHorizontally, 
+    isGridPartialWordValidVertically, 
     isGridComplete } = require("./validityMethods");
 const { wordHash } = require("./dictionary/dictionaryHash");
 const { dictionary} = require("./dictionary/dictionary")
@@ -85,6 +86,19 @@ function createNYTcrossword(grid, blankGrid) {
 }
 
 function createValidSectionBacktracking(grid) {
+    // The first time we are in here, "grid" has the properties:
+    // horizontalWordPartial & verticalWordPartial
+    // - minWordsArr (type of array)
+    // - minWordsColLocation
+    // - minWordsRowLocation
+    // - numMinWordCombinations
+    // - validity
+    // horizontalWords
+    // - horizontalWords
+    // - validity
+    // verticalWords
+    // - verticalWords
+    // - validity
     let gridComplete = false
     while (gridComplete === false) {
         // we create a deep clone of the incoming grid, which allows us to backtrack if our newGrid is invalid
@@ -271,11 +285,14 @@ function createInitialValidSection(grid, entry, dictionary, minValidPartialWords
     let horizontalAnalysis = isGridValidHorizontally(newGrid);
     let horizontalWordPartialAnalysis = isGridPartialWordValidHorizontally(newGrid, minValidPartialWords)
     let verticalAnalysis = isGridValidVertically(newGrid)
+    // below should always be true if this is our first section, we are using it for safety
+    let verticalWordPartialAnalysis = isGridPartialWordValidVertically(newGrid, minValidPartialWords)
 
-    if (horizontalAnalysis.validity === true && verticalAnalysis.validity === true && horizontalWordPartialAnalysis.validity === true) {
+    if (horizontalAnalysis.validity === true && verticalAnalysis.validity === true && horizontalWordPartialAnalysis.validity === true && verticalWordPartialAnalysis.validity === true) {
         newGrid.horizontalWords = horizontalAnalysis;
         newGrid.verticalWords = verticalAnalysis
         newGrid.horizontalWordPartial = horizontalWordPartialAnalysis
+        newGrid.verticalWordPartial = verticalWordPartialAnalysis
         return newGrid;
     }
     return grid;

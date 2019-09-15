@@ -1,4 +1,4 @@
-const { insertFirstHorizontalEntry, insertFirstHorizontalWord } = require("../firstEntryMethods");
+const { insertFirstHorizontalEntry, insertFirstHorizontalWord } = require("../firstEntrySectionMethods");
 
 function ValidRowStartEnd(start, end, row) {
     this.startLeft = start;
